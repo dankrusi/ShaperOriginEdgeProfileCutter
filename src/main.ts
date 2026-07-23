@@ -212,7 +212,7 @@ function profileDiagramSvg(current: Settings): string {
   const tailPixels = (tailLength / totalWidth) * profilePixels;
   const taperEndX = edgeX - tailPixels;
   const depthScale = Math.max(10, innerDepth, edgeDepth);
-  const depthToY = (depth: number) => 17 + (depth / depthScale) * 39;
+  const depthToY = (depth: number) => 12 + (depth / depthScale) * 44;
   const innerY = depthToY(innerDepth);
   const edgeY = depthToY(edgeDepth);
   const showTail = tailLength > 0;
@@ -222,8 +222,8 @@ function profileDiagramSvg(current: Settings): string {
       <title>${profileWidth.toFixed(1)} mm sloped profile, from ${innerDepth.toFixed(1)} mm to ${edgeDepth.toFixed(1)} mm deep${showTail ? `, followed by a ${tailLength.toFixed(1)} mm flat edge tail` : ""}</title>
       <path class="profile-stock" d="M8 12H352V66H8Z"/>
       ${showTail ? `<rect class="profile-tail-zone" x="${taperEndX.toFixed(2)}" y="12" width="${tailPixels.toFixed(2)}" height="54"/>` : ""}
-      <path class="profile-cut" d="M8 12H352V${edgeY.toFixed(2)}H${taperEndX.toFixed(2)}L${profileStartX} ${innerY.toFixed(2)}H8Z"/>
-      <path class="profile-line" d="M8 ${innerY.toFixed(2)}H${profileStartX}L${taperEndX.toFixed(2)} ${edgeY.toFixed(2)}H348"/>
+      <path class="profile-cut" d="M${profileStartX} 12H352V${edgeY.toFixed(2)}H${taperEndX.toFixed(2)}L${profileStartX} ${innerY.toFixed(2)}Z"/>
+      <path class="profile-line" d="M8 12H${profileStartX}V${innerY.toFixed(2)}L${taperEndX.toFixed(2)} ${edgeY.toFixed(2)}H348"/>
       <path class="profile-marker" d="M${profileStartX} 62V68M${taperEndX.toFixed(2)} 62V68M348 62V68"/>
       <text x="${profileStartX - 4}" y="${Math.max(16, innerY - 4).toFixed(2)}" text-anchor="end">d1 ${innerDepth.toFixed(1)}</text>
       <text x="346" y="${Math.max(16, edgeY - 4).toFixed(2)}" text-anchor="end">d2 ${edgeDepth.toFixed(1)}</text>
