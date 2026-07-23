@@ -4,9 +4,9 @@
 
 **[Open the Shaper Origin Edge Profile Cutter](https://dankrusi.github.io/ShaperOriginEdgeProfileCutter/)**
 
-A small browser-based SVG generator for cutting a tapered depth profile around
-the edge of a four-sided board. It uses TypeScript and Vite with no runtime
-dependencies.
+A small browser-based SVG generator for cutting tapered depth profiles around
+recessed panels, coffered ceilings, and other four-sided boards. It uses
+TypeScript and Vite with no runtime dependencies.
 
 Each exported contour is a tool-centre path. Its intended cut depth is included
 in the SVG layer name, `<title>`, and `data-depth-mm` attribute. SVG itself is a

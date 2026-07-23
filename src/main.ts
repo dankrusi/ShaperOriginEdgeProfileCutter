@@ -56,7 +56,7 @@ app.innerHTML = `
       <div class="intro">
         <p class="eyebrow">SVG TOOLPATH GENERATOR</p>
         <h1>Shape the edge,<br><em>pass by pass.</em></h1>
-        <p>Build depth-labelled contours for a flat mill. Adjust the board, tune the profile, then export a clean SVG.</p>
+        <p>Build depth-labelled contours for recessed panels and coffered ceilings. Adjust the board, tune the profile, then export a clean SVG.</p>
       </div>
 
       <form id="settings-form" novalidate>
