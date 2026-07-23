@@ -146,7 +146,12 @@ app.innerHTML = `
             <div><span class="legend-gradient"></span><strong>Cut sequence</strong></div>
             <small>Hover a pass to inspect</small>
           </div>
-          <div class="pass-list" id="pass-list"></div>
+          <div
+            class="pass-list"
+            id="pass-list"
+            tabindex="0"
+            aria-label="Cut sequence. Scroll horizontally to inspect all passes."
+          ></div>
         </div>
         <p class="safety-note">${icons.info} SVG stores the intended depth as path metadata. Set each depth manually on your cutting tool and make a safe test cut.</p>
       </div>
@@ -191,6 +196,17 @@ const exportButton =
   document.querySelector<HTMLButtonElement>("#export-button")!;
 const tooltip = document.querySelector<HTMLDivElement>("#preview-tooltip")!;
 let previewMode: "depth" | "lines" = "depth";
+
+passList.addEventListener(
+  "wheel",
+  (event) => {
+    if (passList.scrollWidth <= passList.clientWidth) return;
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    event.preventDefault();
+    passList.scrollLeft += event.deltaY;
+  },
+  { passive: false },
+);
 
 function getBounds(points: GeometryResult["outline"]) {
   const xs = points.map((point) => point.x);
