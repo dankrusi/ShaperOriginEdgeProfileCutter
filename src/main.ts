@@ -1,6 +1,7 @@
 import "./styles.css";
 import { DEFAULT_SETTINGS } from "./defaults";
 import { generateGeometry, pointsToPath } from "./geometry";
+import { buildProfileDiagramSvg } from "./profileDiagram";
 import { loadSettings, saveSettings } from "./storage";
 import { buildSvg } from "./svg";
 import type { GeometryResult, Settings, ToolPass } from "./types";
@@ -91,7 +92,7 @@ app.innerHTML = `
             id="profile-diagram"
             aria-label="Live cross-section of the edge profile"
           >
-            ${profileDiagramSvg(settings)}
+            ${buildProfileDiagramSvg(settings)}
           </div>
         </section>
 
@@ -185,51 +186,6 @@ function settingTooltip(key: keyof Settings): string {
       <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M6.5 6.2a1.65 1.65 0 0 1 3.15.7c0 1.4-1.65 1.45-1.65 2.65M8 12h.01"/></svg>
       <span class="help-tip-content" role="tooltip">${settingHelp[key]}</span>
     </span>`;
-}
-
-function profileDiagramSvg(current: Settings): string {
-  const profileWidth =
-    Number.isFinite(current.profileWidth) && current.profileWidth > 0
-      ? current.profileWidth
-      : 1;
-  const tailLength = Math.max(
-    Number.isFinite(current.edgeTailLength) ? current.edgeTailLength : 0,
-    0,
-  );
-  const innerDepth = Math.max(
-    Number.isFinite(current.innerDepth) ? current.innerDepth : 0,
-    0,
-  );
-  const edgeDepth = Math.max(
-    Number.isFinite(current.edgeDepth) ? current.edgeDepth : 0,
-    0,
-  );
-
-  const profileStartX = 70;
-  const edgeX = 348;
-  const profilePixels = edgeX - profileStartX;
-  const totalWidth = profileWidth + tailLength;
-  const tailPixels = (tailLength / totalWidth) * profilePixels;
-  const taperEndX = edgeX - tailPixels;
-  const depthScale = Math.max(10, innerDepth, edgeDepth);
-  const depthToY = (depth: number) => 12 + (depth / depthScale) * 44;
-  const innerY = depthToY(innerDepth);
-  const edgeY = depthToY(edgeDepth);
-  const showTail = tailLength > 0;
-
-  return `
-    <svg viewBox="0 0 360 78" role="img">
-      <title>${profileWidth.toFixed(1)} mm sloped profile, from ${innerDepth.toFixed(1)} mm to ${edgeDepth.toFixed(1)} mm deep${showTail ? `, followed by a ${tailLength.toFixed(1)} mm flat edge tail` : ""}</title>
-      <path class="profile-stock" d="M8 12H352V66H8Z"/>
-      ${showTail ? `<rect class="profile-tail-zone" x="${taperEndX.toFixed(2)}" y="12" width="${tailPixels.toFixed(2)}" height="54"/>` : ""}
-      <path class="profile-cut" d="M${profileStartX} 12H352V${edgeY.toFixed(2)}H${taperEndX.toFixed(2)}L${profileStartX} ${innerY.toFixed(2)}Z"/>
-      <path class="profile-line" d="M8 12H${profileStartX}V${innerY.toFixed(2)}L${taperEndX.toFixed(2)} ${edgeY.toFixed(2)}H348"/>
-      <path class="profile-marker" d="M${profileStartX} 62V68M${taperEndX.toFixed(2)} 62V68M348 62V68"/>
-      <text x="${profileStartX - 4}" y="${Math.max(16, innerY - 4).toFixed(2)}" text-anchor="end">d1 ${innerDepth.toFixed(1)}</text>
-      <text x="346" y="${Math.max(16, edgeY - 4).toFixed(2)}" text-anchor="end">d2 ${edgeDepth.toFixed(1)}</text>
-      <text class="profile-dimension" x="${((profileStartX + taperEndX) / 2).toFixed(2)}" y="74" text-anchor="middle">${profileWidth.toFixed(1)} mm taper</text>
-      ${showTail ? `<text class="profile-tail-label" x="${((taperEndX + edgeX) / 2).toFixed(2)}" y="${Math.min(61, edgeY + 10).toFixed(2)}" text-anchor="middle">${tailLength.toFixed(1)} mm tail</text>` : ""}
-    </svg>`;
 }
 
 const form = document.querySelector<HTMLFormElement>("#settings-form")!;
@@ -326,7 +282,7 @@ function passItem(pass: ToolPass): string {
 function render(): void {
   geometry = generateGeometry(settings);
   saveSettings(settings);
-  profileDiagram.innerHTML = profileDiagramSvg(settings);
+  profileDiagram.innerHTML = buildProfileDiagramSvg(settings);
   previewCanvas.innerHTML = previewSvg(geometry);
   passList.innerHTML = geometry.passes.map(passItem).join("");
 

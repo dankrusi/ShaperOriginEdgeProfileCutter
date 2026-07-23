@@ -383,6 +383,12 @@ button {
   font-weight: 500;
 }
 
+.profile-diagram .profile-proportion-label {
+  fill: #9a9384;
+  font-size: 5.5px;
+  letter-spacing: 0.08em;
+}
+
 .range-field {
   align-content: start;
 }
