@@ -125,6 +125,9 @@ export function validateSettings(settings: Settings): string[] {
   ) {
     warnings.push("Left and right offsets must be valid numbers.");
   }
+  if (!Number.isFinite(settings.edgeTailLength) || settings.edgeTailLength < 0) {
+    warnings.push("Edge tail length cannot be negative.");
+  }
   if (settings.innerDepth < 0 || settings.edgeDepth < 0) {
     warnings.push("Cut depths cannot be negative.");
   }
@@ -188,9 +191,12 @@ export function generateGeometry(settings: Settings): GeometryResult {
       bottomLength,
     ) / 2;
 
-  if (settings.profileWidth >= maxSafeInset) {
+  const totalProfileWidth =
+    settings.profileWidth + settings.edgeTailLength;
+
+  if (totalProfileWidth >= maxSafeInset) {
     warnings.push(
-      `Profile width must be less than ${maxSafeInset.toFixed(1)} mm for this shape.`,
+      `Combined profile and edge tail width must be less than ${maxSafeInset.toFixed(1)} mm for this shape.`,
     );
     return {
       outline,
@@ -203,7 +209,7 @@ export function generateGeometry(settings: Settings): GeometryResult {
   const minDepth = Math.min(settings.innerDepth, settings.edgeDepth);
   const maxDepth = Math.max(settings.innerDepth, settings.edgeDepth);
   const positions = makeInsetPositions(
-    settings.profileWidth,
+    totalProfileWidth,
     settings.toolDiameter,
     settings.stepoverPercent,
   );
@@ -213,9 +219,15 @@ export function generateGeometry(settings: Settings): GeometryResult {
   const passes: ToolPass[] = positions.map((inset, index) => {
     const profileRatio =
       positionRange > EPSILON ? (inset - firstPosition) / positionRange : 0;
+    const distanceFromEdge = profileRatio * totalProfileWidth;
+    const taperRatio = Math.max(
+      0,
+      (distanceFromEdge - settings.edgeTailLength) /
+        settings.profileWidth,
+    );
     const depth =
       settings.edgeDepth +
-      (settings.innerDepth - settings.edgeDepth) * profileRatio;
+      (settings.innerDepth - settings.edgeDepth) * taperRatio;
 
     return {
       index: index + 1,

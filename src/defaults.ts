@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS: Settings = {
   leftOffset: 0,
   rightOffset: 35,
   profileWidth: 42,
+  edgeTailLength: 0,
   innerDepth: 1,
   edgeDepth: 8,
   toolDiameter: 6,

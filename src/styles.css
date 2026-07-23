@@ -349,6 +349,10 @@ button {
   fill: var(--paper);
 }
 
+.profile-tail-zone {
+  fill: rgba(214, 90, 50, 0.16);
+}
+
 .profile-line {
   fill: none;
   stroke: var(--orange);
@@ -356,10 +360,27 @@ button {
   stroke-dasharray: 4 3;
 }
 
+.profile-marker {
+  fill: none;
+  stroke: #a99c7f;
+  stroke-width: 0.8;
+}
+
 .profile-diagram text {
   fill: #8b7652;
   font-family: var(--mono);
   font-size: 8px;
+}
+
+.profile-diagram .profile-dimension {
+  fill: #756b59;
+  font-size: 7px;
+}
+
+.profile-diagram .profile-tail-label {
+  fill: var(--orange-dark);
+  font-size: 6.5px;
+  font-weight: 500;
 }
 
 .range-field {

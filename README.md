@@ -22,7 +22,10 @@ machining.
   edge lengths are derived from these values.
 - The flat mill is centred inside the profiled band. Pass spacing is calculated
   from the tool diameter and stepover.
-- Depth is linearly interpolated from the edge depth to the inner depth.
+- An optional edge tail stays flat at the edge depth before the taper begins.
+  Its length is added outside the sloped profile width.
+- After the tail, depth is linearly interpolated from the edge depth to the
+  inner depth.
 
 ## Development
 

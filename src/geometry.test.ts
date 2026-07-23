@@ -61,4 +61,29 @@ describe("generateGeometry", () => {
     expect(result.passes[0]!.depth).toBe(DEFAULT_SETTINGS.edgeDepth);
     expect(result.passes.at(-1)!.depth).toBe(DEFAULT_SETTINGS.innerDepth);
   });
+
+  it("keeps the outer tail flat at the edge depth", () => {
+    const result = generateGeometry({
+      ...DEFAULT_SETTINGS,
+      edgeTailLength: 12,
+    });
+
+    expect(result.passes[0]!.depth).toBe(DEFAULT_SETTINGS.edgeDepth);
+    expect(result.passes[1]!.depth).toBe(DEFAULT_SETTINGS.edgeDepth);
+    expect(result.passes[2]!.depth).toBe(DEFAULT_SETTINGS.edgeDepth);
+    expect(result.passes[3]!.depth).toBeLessThan(DEFAULT_SETTINGS.edgeDepth);
+    expect(result.passes.at(-1)!.depth).toBe(DEFAULT_SETTINGS.innerDepth);
+  });
+
+  it("rejects a combined profile and tail that is too wide", () => {
+    const result = generateGeometry({
+      ...DEFAULT_SETTINGS,
+      edgeTailLength: 150,
+    });
+
+    expect(result.passes).toHaveLength(0);
+    expect(result.warnings).toContain(
+      "Combined profile and edge tail width must be less than 180.0 mm for this shape.",
+    );
+  });
 });

@@ -5,6 +5,7 @@ export interface Settings {
   leftOffset: number;
   rightOffset: number;
   profileWidth: number;
+  edgeTailLength: number;
   innerDepth: number;
   edgeDepth: number;
   toolDiameter: number;

@@ -21,7 +21,9 @@ const settingHelp: Record<keyof Settings, string> = {
   rightOffset:
     "Moves the complete right edge vertically. Negative values move it up; positive values move it down.",
   profileWidth:
-    "The width of the tapered band measured inward from the outside edge.",
+    "The length of the sloped section, measured inward from the end of the flat edge tail.",
+  edgeTailLength:
+    "An optional flat section at d2 along the outer edge. It is added to the sloped profile width.",
   innerDepth:
     "Cut depth at the innermost toolpath, where the tapered profile meets the board face.",
   edgeDepth:
@@ -80,17 +82,16 @@ app.innerHTML = `
           </div>
           <div class="field-grid">
             ${numberField("profileWidth", "Profile width", "mm", 1, 1000, 0.5)}
+            ${numberField("edgeTailLength", "Edge tail length", "mm", 0, 1000, 0.5)}
             ${numberField("innerDepth", "Inner depth d1", "mm", 0, 100, 0.1)}
             ${numberField("edgeDepth", "Edge depth d2", "mm", 0, 100, 0.1)}
           </div>
-          <div class="profile-diagram" aria-label="Profile slopes from inner depth d1 to edge depth d2">
-            <svg viewBox="0 0 360 78" role="img">
-              <path class="profile-stock" d="M8 12H352V66H8Z"/>
-              <path class="profile-cut" d="M12 25H258L348 62V12H12Z"/>
-              <path class="profile-line" d="M12 25H258L348 62"/>
-              <text x="14" y="20">d1</text><text x="326" y="57">d2</text>
-              <text x="276" y="25">profile width</text>
-            </svg>
+          <div
+            class="profile-diagram"
+            id="profile-diagram"
+            aria-label="Live cross-section of the edge profile"
+          >
+            ${profileDiagramSvg(settings)}
           </div>
         </section>
 
@@ -186,8 +187,55 @@ function settingTooltip(key: keyof Settings): string {
     </span>`;
 }
 
+function profileDiagramSvg(current: Settings): string {
+  const profileWidth =
+    Number.isFinite(current.profileWidth) && current.profileWidth > 0
+      ? current.profileWidth
+      : 1;
+  const tailLength = Math.max(
+    Number.isFinite(current.edgeTailLength) ? current.edgeTailLength : 0,
+    0,
+  );
+  const innerDepth = Math.max(
+    Number.isFinite(current.innerDepth) ? current.innerDepth : 0,
+    0,
+  );
+  const edgeDepth = Math.max(
+    Number.isFinite(current.edgeDepth) ? current.edgeDepth : 0,
+    0,
+  );
+
+  const profileStartX = 70;
+  const edgeX = 348;
+  const profilePixels = edgeX - profileStartX;
+  const totalWidth = profileWidth + tailLength;
+  const tailPixels = (tailLength / totalWidth) * profilePixels;
+  const taperEndX = edgeX - tailPixels;
+  const depthScale = Math.max(10, innerDepth, edgeDepth);
+  const depthToY = (depth: number) => 17 + (depth / depthScale) * 39;
+  const innerY = depthToY(innerDepth);
+  const edgeY = depthToY(edgeDepth);
+  const showTail = tailLength > 0;
+
+  return `
+    <svg viewBox="0 0 360 78" role="img">
+      <title>${profileWidth.toFixed(1)} mm sloped profile, from ${innerDepth.toFixed(1)} mm to ${edgeDepth.toFixed(1)} mm deep${showTail ? `, followed by a ${tailLength.toFixed(1)} mm flat edge tail` : ""}</title>
+      <path class="profile-stock" d="M8 12H352V66H8Z"/>
+      ${showTail ? `<rect class="profile-tail-zone" x="${taperEndX.toFixed(2)}" y="12" width="${tailPixels.toFixed(2)}" height="54"/>` : ""}
+      <path class="profile-cut" d="M8 12H352V${edgeY.toFixed(2)}H${taperEndX.toFixed(2)}L${profileStartX} ${innerY.toFixed(2)}H8Z"/>
+      <path class="profile-line" d="M8 ${innerY.toFixed(2)}H${profileStartX}L${taperEndX.toFixed(2)} ${edgeY.toFixed(2)}H348"/>
+      <path class="profile-marker" d="M${profileStartX} 62V68M${taperEndX.toFixed(2)} 62V68M348 62V68"/>
+      <text x="${profileStartX - 4}" y="${Math.max(16, innerY - 4).toFixed(2)}" text-anchor="end">d1 ${innerDepth.toFixed(1)}</text>
+      <text x="346" y="${Math.max(16, edgeY - 4).toFixed(2)}" text-anchor="end">d2 ${edgeDepth.toFixed(1)}</text>
+      <text class="profile-dimension" x="${((profileStartX + taperEndX) / 2).toFixed(2)}" y="74" text-anchor="middle">${profileWidth.toFixed(1)} mm taper</text>
+      ${showTail ? `<text class="profile-tail-label" x="${((taperEndX + edgeX) / 2).toFixed(2)}" y="${Math.min(61, edgeY + 10).toFixed(2)}" text-anchor="middle">${tailLength.toFixed(1)} mm tail</text>` : ""}
+    </svg>`;
+}
+
 const form = document.querySelector<HTMLFormElement>("#settings-form")!;
 const previewCanvas = document.querySelector<HTMLDivElement>("#preview-canvas")!;
+const profileDiagram =
+  document.querySelector<HTMLDivElement>("#profile-diagram")!;
 const passList = document.querySelector<HTMLDivElement>("#pass-list")!;
 const stats = document.querySelector<HTMLDivElement>("#stats")!;
 const validationMessage =
@@ -278,6 +326,7 @@ function passItem(pass: ToolPass): string {
 function render(): void {
   geometry = generateGeometry(settings);
   saveSettings(settings);
+  profileDiagram.innerHTML = profileDiagramSvg(settings);
   previewCanvas.innerHTML = previewSvg(geometry);
   passList.innerHTML = geometry.passes.map(passItem).join("");
 
