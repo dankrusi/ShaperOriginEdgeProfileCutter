@@ -1,5 +1,9 @@
 # Edge Profile Cutter
 
+## Live website
+
+**[Open the Shaper Origin Edge Profile Cutter](https://dankrusi.github.io/ShaperOriginEdgeProfileCutter/)**
+
 A small browser-based SVG generator for cutting a tapered depth profile around
 the edge of a four-sided board. It uses TypeScript and Vite with no runtime
 dependencies.
