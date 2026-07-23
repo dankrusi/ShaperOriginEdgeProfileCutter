@@ -24,6 +24,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow: hidden;
   background:
     radial-gradient(circle at 80% -20%, #faf8f0 0, transparent 33%),
     #ece9e0;
@@ -105,12 +106,17 @@ button {
 }
 
 .workspace {
+  height: calc(100vh - 68px);
   min-height: calc(100vh - 68px);
   display: grid;
   grid-template-columns: minmax(355px, 440px) 1fr;
 }
 
 .controls {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-color: #c8c2b7 transparent;
+  scrollbar-width: thin;
   padding: 46px clamp(28px, 3.6vw, 54px) 36px;
   background: var(--paper);
   border-right: 1px solid var(--line);
@@ -445,7 +451,12 @@ input[type="range"] {
 }
 
 .preview-panel {
+  height: 100%;
   min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(180px, 1fr) auto auto;
+  overflow: hidden;
   padding: 46px clamp(30px, 5vw, 82px) 36px;
 }
 
@@ -490,7 +501,8 @@ input[type="range"] {
 
 .preview-stage {
   position: relative;
-  height: clamp(330px, 49vh, 540px);
+  height: auto;
+  min-height: 0;
   overflow: hidden;
   background:
     linear-gradient(rgba(79, 75, 64, 0.055) 1px, transparent 1px),
@@ -800,20 +812,30 @@ input[type="range"] {
 }
 
 @media (max-width: 760px) {
+  body {
+    overflow: auto;
+  }
+
   .topbar {
     height: 60px;
   }
 
   .workspace {
+    height: auto;
     display: block;
   }
 
   .controls {
+    height: auto;
+    overflow: visible;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
 
   .preview-panel {
+    height: auto;
+    display: block;
+    overflow: visible;
     padding-top: 32px;
   }
 
