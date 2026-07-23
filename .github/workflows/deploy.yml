@@ -22,6 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Push events can occasionally be processed out of order. Always
+          # deploy the current branch head so a delayed run cannot publish
+          # an older version over a newer one.
+          ref: main
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
