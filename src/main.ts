@@ -2,7 +2,12 @@ import "./styles.css";
 import { DEFAULT_SETTINGS } from "./defaults";
 import { generateGeometry, pointsToPath } from "./geometry";
 import { buildProfileDiagramSvg } from "./profileDiagram";
-import { loadSettings, saveSettings } from "./storage";
+import {
+  coerceSettings,
+  loadSettings,
+  saveSettings,
+  serializeSettings,
+} from "./storage";
 import { buildSvg } from "./svg";
 import type { GeometryResult, Settings, ToolPass } from "./types";
 
@@ -37,6 +42,7 @@ const settingHelp: Record<keyof Settings, string> = {
 
 const icons = {
   download: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg>`,
+  upload: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9m0 0 5 5m-5-5-5 5M5 3h14"/></svg>`,
   reset: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M20 20v-6h-6M5.1 15a8 8 0 0 0 13.2 2M18.9 9A8 8 0 0 0 5.7 7"/></svg>`,
   info: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/></svg>`,
 };
@@ -117,8 +123,11 @@ app.innerHTML = `
 
       <div class="control-actions">
         <button type="button" class="button button-secondary" id="reset-button">${icons.reset}<span>Reset</span></button>
-        <button type="button" class="button button-primary" id="export-button">${icons.download}<span>Export SVG</span></button>
+        <button type="button" class="button button-secondary" id="import-button">${icons.upload}<span>Import JSON</span></button>
+        <button type="button" class="button button-secondary" id="export-json-button">${icons.download}<span>Export JSON</span></button>
+        <button type="button" class="button button-primary button-wide" id="export-button">${icons.download}<span>Export SVG</span></button>
       </div>
+      <input type="file" id="import-input" accept="application/json,.json" hidden>
     </aside>
 
     <section class="preview-panel">
@@ -198,6 +207,12 @@ const validationMessage =
   document.querySelector<HTMLDivElement>("#validation-message")!;
 const exportButton =
   document.querySelector<HTMLButtonElement>("#export-button")!;
+const exportJsonButton =
+  document.querySelector<HTMLButtonElement>("#export-json-button")!;
+const importButton =
+  document.querySelector<HTMLButtonElement>("#import-button")!;
+const importInput =
+  document.querySelector<HTMLInputElement>("#import-input")!;
 const tooltip = document.querySelector<HTMLDivElement>("#preview-tooltip")!;
 let previewMode: "depth" | "lines" = "depth";
 
@@ -335,16 +350,49 @@ document.querySelector("#reset-button")!.addEventListener("click", () => {
   render();
 });
 
-exportButton.addEventListener("click", () => {
-  const svg = buildSvg(settings, geometry);
-  if (!svg) return;
-  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+function downloadFile(content: string, filename: string, type: string): void {
+  const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `edge-profile-${settings.commonLength}x${Math.round((settings.leftLength + settings.rightLength) / 2)}mm.svg`;
+  link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function settingsFilename(extension: string): string {
+  const height = Math.round((settings.leftLength + settings.rightLength) / 2);
+  return `edge-profile-${settings.commonLength}x${height}mm.${extension}`;
+}
+
+exportButton.addEventListener("click", () => {
+  const svg = buildSvg(settings, geometry);
+  if (!svg) return;
+  downloadFile(svg, settingsFilename("svg"), "image/svg+xml;charset=utf-8");
+});
+
+exportJsonButton.addEventListener("click", () => {
+  downloadFile(
+    serializeSettings(settings),
+    settingsFilename("json"),
+    "application/json;charset=utf-8",
+  );
+});
+
+importButton.addEventListener("click", () => importInput.click());
+
+importInput.addEventListener("change", async () => {
+  const file = importInput.files?.[0];
+  importInput.value = "";
+  if (!file) return;
+  try {
+    settings = coerceSettings(JSON.parse(await file.text()));
+    syncInputs();
+    render();
+  } catch {
+    validationMessage.className = "validation-error";
+    validationMessage.innerHTML = `${icons.info}<span>Could not read that file as settings JSON.</span>`;
+  }
 });
 
 document.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((button) => {

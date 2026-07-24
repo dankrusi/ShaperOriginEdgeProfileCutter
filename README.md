@@ -8,10 +8,20 @@ A small browser-based SVG generator for cutting tapered depth profiles around
 recessed panels, coffered ceilings, and other four-sided boards. It uses
 TypeScript and Vite with no runtime dependencies.
 
-Each exported contour is a tool-centre path. Its intended cut depth is included
-in the SVG layer name, `<title>`, and `data-depth-mm` attribute. SVG itself is a
-2D format, so always set and verify each depth on the cutting tool before
-machining.
+Each exported contour is a tool-centre path, encoded for Shaper Origin:
+
+- Toolpaths are **on-line cuts** (grey `#7F7F7F` stroke, no fill), so Origin
+  cuts exactly on the line.
+- The outer shape and the inner profile boundary are exported as **guides**
+  (blue `#0068FF`) for on-tool alignment; they are not cut.
+- Each toolpath's intended depth is written with Shaper's
+  `shaper:cutDepth="<n>mm"` attribute (namespace
+  `http://www.shapertools.com/namespaces/shaper`), so Origin picks it up
+  automatically. The depth is also mirrored in the SVG layer name, `<title>`,
+  and `data-depth-mm` attribute.
+
+SVG itself is a 2D format, so always verify each depth on the cutting tool
+before machining.
 
 ## Geometry
 

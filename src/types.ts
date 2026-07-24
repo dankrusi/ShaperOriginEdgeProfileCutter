@@ -27,6 +27,7 @@ export interface ToolPass {
 
 export interface GeometryResult {
   outline: Point[];
+  innerBoundary: Point[];
   passes: ToolPass[];
   bottomLength: number;
   warnings: string[];

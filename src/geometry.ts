@@ -159,7 +159,13 @@ function isConvex(points: Point[]): boolean {
 export function generateGeometry(settings: Settings): GeometryResult {
   const warnings = validateSettings(settings);
   if (warnings.length > 0) {
-    return { outline: [], passes: [], bottomLength: 0, warnings };
+    return {
+      outline: [],
+      innerBoundary: [],
+      passes: [],
+      bottomLength: 0,
+      warnings,
+    };
   }
 
   // Offsets position each vertical side. Negative values move up on screen.
@@ -180,7 +186,7 @@ export function generateGeometry(settings: Settings): GeometryResult {
     warnings.push(
       "These dimensions make a folded or concave board. Reduce the corner offsets.",
     );
-    return { outline, passes: [], bottomLength, warnings };
+    return { outline, innerBoundary: [], passes: [], bottomLength, warnings };
   }
 
   const maxSafeInset =
@@ -200,6 +206,7 @@ export function generateGeometry(settings: Settings): GeometryResult {
     );
     return {
       outline,
+      innerBoundary: [],
       passes: [],
       bottomLength,
       warnings,
@@ -240,6 +247,7 @@ export function generateGeometry(settings: Settings): GeometryResult {
 
   return {
     outline,
+    innerBoundary: offsetPolygon(outline, totalProfileWidth),
     passes,
     bottomLength,
     warnings,
